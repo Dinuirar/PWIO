@@ -1,38 +1,73 @@
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.imageio.ImageIO;
 
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
+
 public class Controller {
 
+	private Stage stage;
 	private ConvFilter convFilter;
 	private String dstDirectoryPath;
+	private String srcDirectoryPath;
 	private int[][] matrix = { { 3, 4, 5 }, { 1, 4, 5 }, { 1, 2, 3 } };
 
-	public void start() throws IOException {
+	@FXML
+	private AnchorPane anchorPanel;
 
-		System.out.print("Podaj œcie¿kê do katalogu z obrazami:");
-		Scanner scanner = new Scanner(System.in);
-		String directoryPath = scanner.nextLine();
+	@FXML
+	private Button searchButton;
 
-		File directory = new File(directoryPath);
-		dstDirectoryPath = createDstDirectory(directoryPath);
+	@FXML
+	private Label pathLabel;
 
-		if (directory.list().length > 0) {
+	@FXML
+	private TextField pathTextField;
 
-			for (File f : directory.listFiles()) {
+	@FXML
+	private Button filterButton;
 
-				if (ifPicture(f)) {
-					this.createNewThread(f);
+	@FXML
+	void filter(ActionEvent event) {
+
+		srcDirectoryPath = pathTextField.getText();
+		if (!srcDirectoryPath.isEmpty()) {
+			File directory = new File(srcDirectoryPath);
+			dstDirectoryPath = createDstDirectory(srcDirectoryPath);
+
+			if (directory.isDirectory() && directory.list().length > 0) {
+
+				for (File f : directory.listFiles()) {
+
+					if (ifPicture(f)) {
+						this.createNewThread(f);
+					}
 				}
-			}
+				showInfo();
+				pathTextField.setText("");
+			} else
+				showInfoNoDirectory();
 		} else
-			System.out.println("Directory is empty!");
-		scanner.close();
+			showInfoNoDirectory();
+	}
+
+	@FXML
+	void search(ActionEvent event) {
+
+		srcDirectoryPath = getPathFromFileDialog();
+		pathTextField.setText(srcDirectoryPath);
 	}
 
 	public void createNewThread(File srcFile) {
@@ -62,6 +97,15 @@ public class Controller {
 		});
 	}
 
+	private String getPathFromFileDialog() {
+
+		Stage stage = new Stage();
+		DirectoryChooser directoryChooser = new DirectoryChooser();
+		directoryChooser.setTitle("Wybierz folder:");
+		java.io.File selectedDirectory = directoryChooser.showDialog(stage);
+		return srcDirectoryPath = selectedDirectory.getAbsolutePath();
+	}
+
 	public String createDstDirectory(String srcDirectory) {
 
 		new File(srcDirectory + "\\result").mkdir();
@@ -77,5 +121,34 @@ public class Controller {
 				return true;
 		}
 		return false;
+	}
+
+	private void showInfo() {
+
+		Alert alert = new Alert(Alert.AlertType.INFORMATION);
+		alert.setTitle("SUPCIO!");
+		alert.setHeaderText(null);
+		alert.setContentText("Obrazy zosta³y przefiltorwane!");
+		alert.showAndWait();
+	}
+
+	private void showInfoNoFiles() {
+
+		Alert alert = new Alert(Alert.AlertType.ERROR);
+		alert.setTitle("B£AD!");
+		alert.setHeaderText(null);
+		alert.setContentText("Wybrany folder jest pusty!");
+		alert.showAndWait();
+		pathTextField.setText("");
+	}
+
+	private void showInfoNoDirectory() {
+
+		Alert alert = new Alert(Alert.AlertType.ERROR);
+		alert.setTitle("B£AD!");
+		alert.setHeaderText(null);
+		alert.setContentText("Nie wybrano folderu!");
+		alert.showAndWait();
+		pathTextField.setText("");
 	}
 }
