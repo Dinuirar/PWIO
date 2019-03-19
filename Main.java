@@ -27,7 +27,6 @@ public class Main extends Application {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("End program : " + System.currentTimeMillis() / 1000);
 	}
 
 }

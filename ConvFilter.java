@@ -37,25 +37,19 @@ public class ConvFilter {
         }
     }
 
+    //filters src image using n threads and returns result
     public BufferedImage filter(BufferedImage src, int threads) {
-        // można tu jeszcze dać sprawdzenie, czy kolumny startowe i końcowe są
-        // poprawne:
-        // start_col > (kernel_size-1)/2, end_col < width - (kernel_size-1)/2
-        // ale nie wiem, czy nie lepiej tego sprawdzać przed wywołaniem metody
-
         if (src.getType() == 5) {
 
             int width = src.getWidth();
             int height = src.getHeight();
 
-            // trzeba to w ogóle inicjalizować?
             BufferedImage dst = new BufferedImage(width, height, 5);
 
             int col_shift = width / threads;
             int left = width % threads;
 
-            //tutaj dzielimy obraz na fragmenty w zależności od ilości wątków
-            // czy to jest inicjalizowane jako zera?
+            //calculate indexes used by threads
             int[] col_indexes = new int[2 * threads];
 
             for (int i = 0; i < threads - left; i++) {
@@ -78,7 +72,6 @@ public class ConvFilter {
                 Future<?> future = executor.submit(() -> {
                     for (int i = col_indexes[2 * t_f]; i < col_indexes[2 * t_f + 1]; i++) {
                         for (int j = 0; j < height; j++) {
-                            //jeśli krawędź, to przepisz wartości z poprzedniego obrazu
                             if (i < kernel_size || i > width - kernel_size) {
                                 dst.setRGB(i, j, src.getRGB(i, j));
                             }
@@ -121,7 +114,7 @@ public class ConvFilter {
             long end = System.nanoTime();
             float time = (end-start);
 
-            System.out.println("Time filtering with " + threads + " threads: " + time);
+            System.out.println("Time filtering " + width + "x" + height + " image with " + threads + " threads: " + time);
 
             return dst;
         } else {
