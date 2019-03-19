@@ -18,137 +18,131 @@ import javafx.stage.Stage;
 
 public class Controller {
 
-	private Stage stage;
-	private ConvFilter convFilter;
-	private String dstDirectoryPath;
-	private String srcDirectoryPath;
-	private int[][] matrix = { { 3, 4, 5 }, { 1, 4, 5 }, { 1, 2, 3 } };
+    private Stage stage;
+    private ConvFilter convFilter;
+    private String dstDirectoryPath;
+    private String srcDirectoryPath;
+    private int[][] matrix = {
+            {1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1}
+    };
 
-	@FXML
-	private AnchorPane anchorPanel;
+    @FXML
+    private AnchorPane anchorPanel;
 
-	@FXML
-	private Button searchButton;
+    @FXML
+    private Button searchButton;
 
-	@FXML
-	private Label pathLabel;
+    @FXML
+    private Label pathLabel;
 
-	@FXML
-	private TextField pathTextField;
+    @FXML
+    private TextField pathTextField;
 
-	@FXML
-	private Button filterButton;
+    @FXML
+    private Button filterButton;
 
-	@FXML
-	void filter(ActionEvent event) {
+    @FXML
+    void filter(ActionEvent event) {
 
-		srcDirectoryPath = pathTextField.getText();
-		if (!srcDirectoryPath.isEmpty()) {
-			File directory = new File(srcDirectoryPath);
-			dstDirectoryPath = createDstDirectory(srcDirectoryPath);
+        srcDirectoryPath = pathTextField.getText();
+        if (!srcDirectoryPath.isEmpty()) {
+            File directory = new File(srcDirectoryPath);
+            dstDirectoryPath = createDstDirectory(srcDirectoryPath);
 
-			if (directory.isDirectory() && directory.list().length > 0) {
+            if (directory.isDirectory() && directory.list().length > 0) {
 
-				for (File f : directory.listFiles()) {
+                for (File f : directory.listFiles()) {
 
-					if (ifPicture(f)) {
-						this.createNewThread(f);
-					}
-				}
-				showInfo();
-				pathTextField.setText("");
-			} else
-				showInfoNoDirectory();
-		} else
-			showInfoNoDirectory();
-	}
+                    if (ifPicture(f)) {
+                        this.filterImage(f);
+                    }
+                }
+                showInfo();
+                pathTextField.setText("");
+            } else
+                showInfoNoDirectory();
+        } else
+            showInfoNoDirectory();
+    }
 
-	@FXML
-	void search(ActionEvent event) {
+    @FXML
+    void search(ActionEvent event) {
 
-		srcDirectoryPath = getPathFromFileDialog();
-		pathTextField.setText(srcDirectoryPath);
-	}
+        srcDirectoryPath = getPathFromFileDialog();
+        pathTextField.setText(srcDirectoryPath);
+    }
 
-	public void createNewThread(File srcFile) {
+    public void filterImage(File srcFile) {
+        convFilter = new ConvFilter(matrix);
+        BufferedImage srcPic = null;
+        BufferedImage tempPic = null;
+        try {
+            srcPic = ImageIO.read(srcFile);
+            File newFilePic = new File(dstDirectoryPath + "\\" + srcFile.getName());
+            tempPic = convFilter.filter(srcPic, 4);
+            ImageIO.write(tempPic, "jpg", newFilePic);
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+    }
 
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.submit(() -> {
+    private String getPathFromFileDialog() {
 
-			String threadName = Thread.currentThread().getName();
-			System.out.println("Start executor: " + System.currentTimeMillis() / 1000 + " " + threadName);
-			convFilter = new ConvFilter(matrix);
+        Stage stage = new Stage();
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Wybierz folder:");
+        java.io.File selectedDirectory = directoryChooser.showDialog(stage);
+        return srcDirectoryPath = selectedDirectory.getAbsolutePath();
+    }
 
-			BufferedImage srcPic = null;
-			BufferedImage tempPic = null;
-			try {
-				srcPic = ImageIO.read(srcFile);
-				tempPic = ImageIO.read(srcFile);
-				File newFilePic = new File(dstDirectoryPath + "\\" + srcFile.getName());
-				tempPic = convFilter.filter(srcPic, tempPic, 1, 25);
-				ImageIO.write(tempPic, "jpg", newFilePic);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			System.out.println(
-					"End executor: " + System.currentTimeMillis() / 1000 + " " + Thread.currentThread().getName());
-			executor.shutdown();
-		});
-	}
+    public String createDstDirectory(String srcDirectory) {
 
-	private String getPathFromFileDialog() {
+        new File(srcDirectory + "\\result").mkdir();
+        File f = new File(srcDirectory + "\\result");
+        return f.getPath();
+    }
 
-		Stage stage = new Stage();
-		DirectoryChooser directoryChooser = new DirectoryChooser();
-		directoryChooser.setTitle("Wybierz folder:");
-		java.io.File selectedDirectory = directoryChooser.showDialog(stage);
-		return srcDirectoryPath = selectedDirectory.getAbsolutePath();
-	}
+    private boolean ifPicture(File f) {
 
-	public String createDstDirectory(String srcDirectory) {
+        String[] extensions = {".jpg", ".png"};
+        for (String extension : extensions) {
+            if (f.getPath().endsWith(extension))
+                return true;
+        }
+        return false;
+    }
 
-		new File(srcDirectory + "\\result").mkdir();
-		File f = new File(srcDirectory + "\\result");
-		return f.getPath();
-	}
+    private void showInfo() {
 
-	private boolean ifPicture(File f) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("SUPCIO!");
+        alert.setHeaderText(null);
+        alert.setContentText("Obrazy zosta³y przefiltorwane!");
+        alert.showAndWait();
+    }
 
-		String[] extensions = { ".jpg", ".png" };
-		for (String extension : extensions) {
-			if (f.getPath().endsWith(extension))
-				return true;
-		}
-		return false;
-	}
+    private void showInfoNoFiles() {
 
-	private void showInfo() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("B£AD!");
+        alert.setHeaderText(null);
+        alert.setContentText("Wybrany folder jest pusty!");
+        alert.showAndWait();
+        pathTextField.setText("");
+    }
 
-		Alert alert = new Alert(Alert.AlertType.INFORMATION);
-		alert.setTitle("SUPCIO!");
-		alert.setHeaderText(null);
-		alert.setContentText("Obrazy zosta³y przefiltorwane!");
-		alert.showAndWait();
-	}
+    private void showInfoNoDirectory() {
 
-	private void showInfoNoFiles() {
-
-		Alert alert = new Alert(Alert.AlertType.ERROR);
-		alert.setTitle("B£AD!");
-		alert.setHeaderText(null);
-		alert.setContentText("Wybrany folder jest pusty!");
-		alert.showAndWait();
-		pathTextField.setText("");
-	}
-
-	private void showInfoNoDirectory() {
-
-		Alert alert = new Alert(Alert.AlertType.ERROR);
-		alert.setTitle("B£AD!");
-		alert.setHeaderText(null);
-		alert.setContentText("Nie wybrano folderu!");
-		alert.showAndWait();
-		pathTextField.setText("");
-	}
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("B£AD!");
+        alert.setHeaderText(null);
+        alert.setContentText("Nie wybrano folderu!");
+        alert.showAndWait();
+        pathTextField.setText("");
+    }
 }
