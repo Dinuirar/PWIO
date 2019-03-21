@@ -11,6 +11,7 @@ public class ConvFilter {
     private int kernel_size;
     private int shift;
     private int kernel_sum;
+    final ExecutorService executor = Executors.newFixedThreadPool(32);
 
     public ConvFilter(int[][] k) {
         kernel = k;
@@ -64,7 +65,6 @@ public class ConvFilter {
 
             long start = System.nanoTime();
 
-            final ExecutorService executor = Executors.newFixedThreadPool(threads);
             final List<Future<?>> futures = new ArrayList<>();
 
             for (int t = 0; t < threads; t++) {
@@ -102,19 +102,20 @@ public class ConvFilter {
                 });
                 futures.add(future);
             }
+            //use threads to filter separate parts of an image
 
             try {
                 for (Future<?> future : futures) {
-                    future.get(); // do anything you need, e.g. isDone(), ...
+                    future.get();
                 }
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
 
             long end = System.nanoTime();
-            float time = (end-start);
+            double time = (end-start)/10E6;
 
-            System.out.println("Time filtering " + width + "x" + height + " image with " + threads + " threads: " + time);
+            System.out.printf(Math.round(time)+",");
 
             return dst;
         } else {
