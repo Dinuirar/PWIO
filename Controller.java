@@ -17,17 +17,14 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class Controller {
-
     private Stage stage;
     private ConvFilter convFilter;
     private String dstDirectoryPath;
     private String srcDirectoryPath;
     private int[][] matrix = {
-            {1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1},
-            {1, 1, 1, 1, 1}
+            {-1, 0, 1},
+            {-2, 0, 2},
+            {-1, 0, 1}
     };
 
     @FXML
@@ -47,16 +44,13 @@ public class Controller {
 
     @FXML
     void filter(ActionEvent event) {
-
         srcDirectoryPath = pathTextField.getText();
         if (!srcDirectoryPath.isEmpty()) {
             File directory = new File(srcDirectoryPath);
             dstDirectoryPath = createDstDirectory(srcDirectoryPath);
 
             if (directory.isDirectory() && directory.list().length > 0) {
-
                 for (File f : directory.listFiles()) {
-
                     if (ifPicture(f)) {
                         this.filterImage(f);
                     }
@@ -71,7 +65,6 @@ public class Controller {
 
     @FXML
     void search(ActionEvent event) {
-
         srcDirectoryPath = getPathFromFileDialog();
         pathTextField.setText(srcDirectoryPath);
     }
@@ -92,7 +85,6 @@ public class Controller {
     }
 
     private String getPathFromFileDialog() {
-
         Stage stage = new Stage();
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Wybierz folder:");
@@ -101,14 +93,12 @@ public class Controller {
     }
 
     public String createDstDirectory(String srcDirectory) {
-
         new File(srcDirectory + "\\result").mkdir();
         File f = new File(srcDirectory + "\\result");
         return f.getPath();
     }
 
     private boolean ifPicture(File f) {
-
         String[] extensions = {".jpg", ".png"};
         for (String extension : extensions) {
             if (f.getPath().endsWith(extension))
@@ -118,18 +108,16 @@ public class Controller {
     }
 
     private void showInfo() {
-
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("SUPCIO!");
+        alert.setTitle("Sukces");
         alert.setHeaderText(null);
-        alert.setContentText("Obrazy zosta³y przefiltorwane!");
+        alert.setContentText("Obrazy zostaly przefiltrowane!");
         alert.showAndWait();
     }
 
     private void showInfoNoFiles() {
-
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("B£AD!");
+        alert.setTitle("ERROR!");
         alert.setHeaderText(null);
         alert.setContentText("Wybrany folder jest pusty!");
         alert.showAndWait();
@@ -137,9 +125,8 @@ public class Controller {
     }
 
     private void showInfoNoDirectory() {
-
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("B£AD!");
+        alert.setTitle("ERROR!");
         alert.setHeaderText(null);
         alert.setContentText("Nie wybrano folderu!");
         alert.showAndWait();

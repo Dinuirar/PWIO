@@ -41,7 +41,6 @@ public class ConvFilter {
     //filters src image using n threads and returns result
     public BufferedImage filter(BufferedImage src, int threads) {
         if (src.getType() == 5) {
-
             int width = src.getWidth();
             int height = src.getHeight();
 
