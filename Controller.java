@@ -1,8 +1,6 @@
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.imageio.ImageIO;
 
@@ -21,11 +19,6 @@ public class Controller {
     private ConvFilter convFilter;
     private String dstDirectoryPath;
     private String srcDirectoryPath;
-    private int[][] matrix = {
-            {-1, 0, 1},
-            {-2, 0, 2},
-            {-1, 0, 1}
-    };
 
     @FXML
     private AnchorPane anchorPanel;
@@ -41,6 +34,7 @@ public class Controller {
 
     @FXML
     private Button filterButton;
+    private BufferedImage srcPic;
 
     @FXML
     void filter(ActionEvent event) {
@@ -52,7 +46,7 @@ public class Controller {
             if (directory.isDirectory() && directory.list().length > 0) {
                 for (File f : directory.listFiles()) {
                     if (ifPicture(f)) {
-                        this.filterImage(f);
+                        filterImage(f);
                     }
                 }
                 showInfo();
@@ -70,16 +64,18 @@ public class Controller {
     }
 
     public void filterImage(File srcFile) {
-        convFilter = new ConvFilter(matrix);
         BufferedImage srcPic = null;
         BufferedImage tempPic = null;
         try {
             srcPic = ImageIO.read(srcFile);
             File newFilePic = new File(dstDirectoryPath + "\\" + srcFile.getName());
-            tempPic = convFilter.filter(srcPic, 4);
+            int width = srcPic.getWidth(); int height = srcPic.getHeight();
+            int[] srctab = srcPic.getRGB(0, 0, width, height, null, 0, width);
+            int[] temptab = new int[srctab.length];
+            convFilter = new ConvFilter(srctab, 0, (int)srcFile.length(), temptab);
+            tempPic = convFilter.filter(srcPic);
             ImageIO.write(tempPic, "jpg", newFilePic);
         } catch (IOException e1) {
-            // TODO Auto-generated catch block
             e1.printStackTrace();
         }
     }
