@@ -8,10 +8,12 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
+	// launch application
 	public static void main(String[] args) {
 		launch(args);
 	}
 
+	// initialise GUI
 	@Override
 	public void start(Stage primaryStage) {
 		try {
